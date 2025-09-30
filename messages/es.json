@@ -1,0 +1,15 @@
+{
+    "nav": {
+        "blog": "Blog",
+        "home": "Inicio",
+        "contact": "Contacto"
+    },
+    "home": {
+        "title": "Horchata Labs — Ideas, Builds y Funnels",
+        "cta": "Hablemos"
+    },
+    "blog": {
+        "title": "Ideas",
+        "readMore": "Leer más"
+    }
+}
