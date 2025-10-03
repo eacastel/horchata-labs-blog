@@ -3,7 +3,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { listPosts } from '../lib/contentful'
+import { listPosts } from '@lib/contentful';
 
 
 async function main() {
