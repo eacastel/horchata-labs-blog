@@ -13,7 +13,7 @@
     "dependencies": {
         "@contentful/rich-text-react-renderer": "^16.1.5",
         "@contentful/rich-text-types": "^17.2.4",
-        "contentful": "^10.11.6",
+        "contentful": "^10.15.2",
         "next": "14.2.5",
         "next-intl": "^3.18.0",
         "react": "18.3.1",
