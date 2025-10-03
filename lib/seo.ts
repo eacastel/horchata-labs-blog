@@ -1,6 +1,6 @@
-// ==============================
+
 // lib/seo.ts (central SEO util)
-// ==============================
+
 export function defaultMetadata(locale: string) {
 const isEs = locale === 'es'
 return {

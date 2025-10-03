@@ -1,6 +1,5 @@
-// ==============================
 // app/[locale]/layout.tsx
-// ==============================
+
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -61,8 +60,10 @@ export default async function LocaleLayout({
             </nav>
           </header>
           <main className="max-w-content mx-auto p-4">{children}</main>
-          <footer className="max-w-content mx-auto p-4 text-xs text-neutral-500">
-            © {new Date().getFullYear()} Horchata Labs
+          <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-700 dark:text-neutral-300">
+            <div className="max-w-content mx-auto p-4 text-sm">
+              © {new Date().getFullYear()} Horchata Labs. All rights reserved.
+            </div>
           </footer>
         </NextIntlClientProvider>
       </body>

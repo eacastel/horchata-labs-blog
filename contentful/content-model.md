@@ -1,6 +1,6 @@
-// ==============================
+
 // contentful/content-model.md (reference)
-// ==============================
+
 // Use Contentful locales: en-US, es-ES.
 // Content type: blogPost
 // Fields:

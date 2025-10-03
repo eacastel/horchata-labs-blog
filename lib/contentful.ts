@@ -1,6 +1,6 @@
-// ==============================
+
 // lib/contentful.ts
-// ==============================
+
 import { createClient } from 'contentful'
 
 

@@ -1,6 +1,6 @@
-// ==============================
+
 // app/[locale]/blog/[slug]/page.tsx (Post)
-// ==============================
+
 import type { Metadata } from "next";
 import { getPostBySlug } from "../../../../lib/contentful";
 import { postMetadata } from "../../../../lib/seo";

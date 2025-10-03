@@ -1,6 +1,6 @@
-// ==============================
+
 // README.md (ops + reuse plan)
-// ==============================
+
 
 # Horchata Labs – Next.js Blog Starter (Tailwind + i18n + Contentful)
 

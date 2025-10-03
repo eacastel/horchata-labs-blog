@@ -1,6 +1,6 @@
-// ==============================
+
 // app/sitemap.ts
-// ==============================
+
 import { listSlugsByLocale } from '../lib/contentful'
 
 

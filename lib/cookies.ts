@@ -1,6 +1,6 @@
-// ==============================
+
 // lib/cookies.ts (helpers for future funnel/home overrides)
-// ==============================
+
 'use server'
 import { cookies } from 'next/headers'
 

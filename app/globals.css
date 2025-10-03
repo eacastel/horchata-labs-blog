@@ -4,10 +4,39 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
+
+  html,
+  body {
     @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
   }
-}
 
-/* Blog content */
-.prose img { @apply max-w-full h-auto rounded; }
+  /* All generic text elements get sane defaults */
+  h1 {
+    @apply text-3xl font-bold text-neutral-900 dark:text-neutral-100;
+  }
+
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    @apply text-base text-neutral-700 dark:text-neutral-200;
+  }
+
+  a,
+  form {
+    @apply text-base text-neutral-700 dark:text-neutral-200;
+  }
+
+  li,
+  span,
+  small,
+  strong {
+    @apply text-neutral-900 dark:text-neutral-100;
+  }
+
+  button {
+    @apply inline-block px-4 py-2 border rounded hover:bg-brand hover:text-black;
+  }
+}

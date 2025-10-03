@@ -13,7 +13,9 @@ export default async function BlogIndex({
   const posts = await listPosts(params.locale);
   return (
     <section>
-      <h1 className="text-2xl font-bold mb-4">{t("blog.title")}</h1>
+      <h1 className="text-2xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">
+        {t("blog.title")}
+      </h1>
       <ul className="space-y-6">
         {posts.map((p) => (
           <li

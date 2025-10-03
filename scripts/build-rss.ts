@@ -1,6 +1,6 @@
-// ==============================
+
 // scripts/build-rss.ts (simple RSS)
-// ==============================
+
 import fs from 'node:fs'
 import path from 'node:path'
 import { listPosts } from '../lib/contentful'
