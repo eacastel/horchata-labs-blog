@@ -14,7 +14,7 @@ export type Post = {
 };
 
 // ---- Map app locales ('en','es') to Contentful locales ----
-const CF_LOCALE_MAP: Record<string, string> = { en: 'en-US', es: 'es-ES' };
+const CF_LOCALE_MAP: Record<string, string> = { en: 'en-US', es: 'es' };
 function cfLocale(locale: string) {
   return CF_LOCALE_MAP[locale] ?? locale;
 }
