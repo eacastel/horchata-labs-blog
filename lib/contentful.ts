@@ -1,35 +1,7 @@
 // lib/contentful.ts
-import {createClient, type EntrySkeletonType} from 'contentful';
+import { createClient } from 'contentful';
 
-type BlogPostFields = {
-  title: string;
-  slug: string;
-  excerpt?: string;
-  body: any;
-  coverImage?: any; // TODO: tighten to Asset type if desired
-  tags?: string[];
-  authorName?: string;
-  publishedDate?: string;
-};
-
-// Contentful v10 typing pattern
-export type BlogPostSkeleton = EntrySkeletonType & {
-  contentTypeId: 'blogPost';
-  fields: BlogPostFields;
-};
-
-// Map app route locales ('en','es') -> Contentful IDs ('en-US','es-ES')
-const CF_LOCALE_MAP: Record<string, string> = { en: 'en-US', es: 'es-ES' };
-function cfLocale(locale: string) {
-  return CF_LOCALE_MAP[locale] ?? locale; // pass-through if already full ID
-}
-
-const client = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID!,
-  accessToken: process.env.CONTENTFUL_CDA_TOKEN!,
-  environment: process.env.CONTENTFUL_ENVIRONMENT || 'master',
-});
-
+// ---- App-level type (clean) ----
 export type Post = {
   title: string;
   slug: string;
@@ -41,63 +13,84 @@ export type Post = {
   publishedDate?: string;
 };
 
+// ---- Map app locales ('en','es') to Contentful locales ----
+const CF_LOCALE_MAP: Record<string, string> = { en: 'en-US', es: 'es-ES' };
+function cfLocale(locale: string) {
+  return CF_LOCALE_MAP[locale] ?? locale;
+}
+
+// ---- Contentful client ----
+const client = createClient({
+  space: process.env.CONTENTFUL_SPACE_ID!,
+  accessToken: process.env.CONTENTFUL_CDA_TOKEN!,
+  environment: process.env.CONTENTFUL_ENVIRONMENT || 'master',
+});
+
+// ---- Runtime validator: Entry -> Post | null ----
+function toPost(entry: unknown): Post | null {
+  // We only rely on the minimal shape we actually use
+  const e = entry as { fields?: any } | null | undefined;
+  const f = e?.fields ?? {};
+
+  const title = typeof f.title === 'string' ? f.title : undefined;
+  const slug = typeof f.slug === 'string' && f.slug.trim().length > 0 ? f.slug : undefined;
+
+  if (!title || !slug) return null; // must have both in the current locale
+
+  const body = f.body; // rich text or whatever you stored
+  const excerpt = typeof f.excerpt === 'string' ? f.excerpt : undefined;
+  const authorName = typeof f.authorName === 'string' ? f.authorName : undefined;
+  const publishedDate = typeof f.publishedDate === 'string' ? f.publishedDate : undefined;
+
+  const tags =
+    Array.isArray(f.tags) ? (f.tags.filter((t: unknown) => typeof t === 'string') as string[]) : undefined;
+
+  const coverImageUrl = f.coverImage?.fields?.file?.url as string | undefined;
+  const coverImage = normalizeImageUrl(coverImageUrl);
+
+  return { title, slug, excerpt, body, coverImage, tags, authorName, publishedDate };
+}
+
+// ---- Public API ----
 export async function listPosts(locale: string): Promise<Post[]> {
-  const res = await client.getEntries<BlogPostSkeleton>({
+  const res = await client.getEntries({
     content_type: 'blogPost',
-    order: ['-fields.publishedDate'],
+    order: ['-fields.publishedDate'], // array form keeps TS + SDK happy
     locale: cfLocale(locale),
     limit: 50,
-  });
+  } as any); // <-- relax SDK typing at the edge
 
-  return res.items.map((it) => ({
-    title: it.fields.title,
-    slug: it.fields.slug,
-    excerpt: it.fields.excerpt,
-    body: it.fields.body,
-    coverImage: normalizeImageUrl((it.fields as any).coverImage?.fields?.file?.url),
-    tags: it.fields.tags,
-    authorName: it.fields.authorName,
-    publishedDate: it.fields.publishedDate,
-  }));
+  const items = Array.isArray((res as any).items) ? (res as any).items : [];
+  return items.map(toPost).filter((p: Post | null): p is Post => p !== null);
 }
 
 export async function getPostBySlug(slug: string, locale: string): Promise<Post | null> {
-  const res = await client.getEntries<BlogPostSkeleton>({
+  const res = await client.getEntries({
     content_type: 'blogPost',
     'fields.slug': slug,
     limit: 1,
     locale: cfLocale(locale),
-  });
+  } as any);
 
-  const item = res.items[0];
-  if (!item) return null;
-
-  return {
-    title: item.fields.title,
-    slug: item.fields.slug,
-    excerpt: item.fields.excerpt,
-    body: item.fields.body,
-    coverImage: normalizeImageUrl((item.fields as any).coverImage?.fields?.file?.url),
-    tags: item.fields.tags,
-    authorName: item.fields.authorName,
-    publishedDate: item.fields.publishedDate,
-  };
+  const item = (res as any).items?.[0];
+  return toPost(item);
 }
 
 export async function listSlugsByLocale(locale: string): Promise<string[]> {
-  const res = await client.getEntries<BlogPostSkeleton>({
+  const res = await client.getEntries({
     content_type: 'blogPost',
     select: ['fields.slug'],
     locale: cfLocale(locale),
     limit: 1000,
-  });
+  } as any);
 
-  return res.items
-    .map((it) => it.fields.slug)                 // inferred as string
-    .filter((s) => s && s.length > 0);           // simple boolean filter, no predicate
+  const items = Array.isArray((res as any).items) ? (res as any).items : [];
+  return items
+    .map((e: any) => e?.fields?.slug as string | undefined)
+    .filter((s: string | undefined): s is string => typeof s === 'string' && s.trim().length > 0);
 }
 
-// --- helpers ---
+// ---- helpers ----
 function normalizeImageUrl(url?: string): string | undefined {
   if (!url) return undefined;
   return url.startsWith('//') ? `https:${url}` : url.startsWith('http') ? url : `https:${url}`;
