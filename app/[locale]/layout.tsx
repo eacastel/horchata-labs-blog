@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import LanguageSwitch from './LanguageSwitch';
 import { NextIntlClientProvider } from "next-intl";
 import { defaultMetadata } from "../../lib/seo";
 import "../globals.css";
@@ -55,7 +56,7 @@ export default async function LocaleLayout({
                 >
                   Contact
                 </a>
-                <LangSwitcher locale={locale} />
+                <LanguageSwitch locale={locale} />
               </div>
             </nav>
           </header>
@@ -71,19 +72,3 @@ export default async function LocaleLayout({
   );
 }
 
-function LangSwitcher({ locale }: { locale: string }) {
-  const other = locale === "en" ? "es" : "en";
-  return (
-    <form action={`/${other}`} method="get">
-      <button
-        formAction={`/${other}`}
-        className="px-2 py-1 border rounded
-                   border-neutral-300 text-neutral-800
-                   dark:border-neutral-700 dark:text-neutral-100
-                   hover:bg-brand hover:text-neutral-900"
-      >
-        {other.toUpperCase()}
-      </button>
-    </form>
-  );
-}
