@@ -25,11 +25,12 @@ export default async function Contact({ params, searchParams }: {
       {sent && <p className="text-sm text-green-600">{t("success")}</p>}
       {error && <p className="text-sm text-red-600">{t("error.generic")}</p>}
 
+      {/* 
       <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer"
         className="inline-block px-4 py-2 border rounded hover:bg-brand hover:text-black hover:opacity-90">
         {t("button")}
       </Link>
-
+      */}
       {/* DO NOT pass t here */}
       <ContactForm locale={locale} action={action} />
     </section>

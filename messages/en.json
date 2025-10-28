@@ -6,7 +6,7 @@
     },
     "home": {
         "title": "Horchata Labs ",
-        "intro": "Horchata Labs is a creative-tech studio based in Valencia, Spain, specialized in digital positioning, branding, and technical SEO.  We ship Next.js + TypeScript websites and funnels with next-intl (i18n), server actions, image optimization, and Lighthouse-clean performance.  We wire GA4 + GTM (Consent Mode, CookieYes), implement technical SEO, and run content that actually ranks—so every launch is faster and every decision is data-backed.",
+        "intro": "Horchata Labs is a creative-tech studio based in Valencia, Spain, specialized in digital positioning, branding, and technical SEO.  \n\nWe ship Next.js + TypeScript websites and funnels with next-intl (i18n), server actions, image optimization, and Lighthouse-clean performance.  \n\nWe wire GA4 + GTM (Consent Mode, CookieYes), implement technical SEO, and run content that actually ranks—so every launch is faster and every decision is data-backed.",
         "cta": "Get in touch"
     },
     "blog": {
