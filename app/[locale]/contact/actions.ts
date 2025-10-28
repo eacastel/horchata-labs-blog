@@ -8,15 +8,16 @@ const API_KEY = process.env.RESEND_API_KEY!;
 const FROM   = process.env.CONTACT_FROM!;
 const TO     = process.env.CONTACT_TO!;
 
-export async function submitContact(formData: FormData) {
+export async function submitContact(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   try {
-    // BotID check
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
-      : await checkBotId().catch(() => ({ isBot: false }));
-    if (isBot) return { ok: true }; // silently drop
+      : await checkBotId().catch((e) => {
+          console.error('checkBotId failed:', e);
+          return { isBot: false };
+        });
+    if (isBot) return { ok: true };
 
-    // Honeypot
     if ((formData.get('company') || '').toString().trim()) return { ok: true };
 
     const name    = (formData.get('name') || '').toString().trim();
@@ -25,11 +26,10 @@ export async function submitContact(formData: FormData) {
     const locale  = (formData.get('locale') || 'en').toString();
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!name || !isEmail || !message) return { ok: false, error: 'Invalid form' };
+    if (!name || !isEmail || !message) return { ok: false, error: 'invalid' };
 
     if (!API_KEY || !FROM || !TO) {
-      console.error('Missing env: RESEND_API_KEY / CONTACT_FROM / CONTACT_TO');
-      return { ok: false, error: 'Server not configured' };
+      return { ok: false, error: 'config' };
     }
 
     const resend = new Resend(API_KEY);
@@ -49,11 +49,10 @@ export async function submitContact(formData: FormData) {
         ? `Hola ${name},\n\nGracias por escribirnos. Hemos recibido tu mensaje y te responderemos en breve.\n\n— Horchata Labs`
         : `Hi ${name},\n\nThanks for reaching out. We’ve received your message and will reply shortly.\n\n— Horchata Labs`;
 
-    // Send to internal inbox
     await resend.emails.send({
       from: FROM,
       to: TO,
-      replyTo: email, // <- camelCase
+      replyTo: email, // camelCase
       subject: subjInternal,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
       html: `<h2>${subjInternal}</h2>
@@ -63,7 +62,6 @@ export async function submitContact(formData: FormData) {
              <p>${message.replace(/\n/g, '<br/>')}</p>`,
     });
 
-    // Auto-acknowledge to user
     await resend.emails.send({
       from: FROM,
       to: email,
@@ -73,8 +71,12 @@ export async function submitContact(formData: FormData) {
     });
 
     return { ok: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error('submitContact failed:', err);
-    return { ok: false, error: 'Send failed' };
+    const msg =
+      err?.message ||
+      err?.response?.data?.message ||
+      (typeof err === 'string' ? err : 'send-failed');
+    return { ok: false, error: msg };
   }
 }

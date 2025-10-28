@@ -9,15 +9,22 @@
         "intro": "Horchata Labs es una agencia creativa y tecnológica en Valencia que ayuda a las marcas a lanzar, crecer y medir su presencia digital mediante estrategia, diseño y marketing basado en datos.",
         "cta": "Hablemos"
     },
-    "contact": {
-        "title": "Contacto",
-        "subtitle": "Escríbenos por WhatsApp o usa el formulario y te responderemos lo antes posible.",
-        "button": "Contactar por WhatsApp",
-        "prefill": "Hola, quiero más información sobre los servicios de Horchata Labs."
-    },
-
     "blog": {
         "title": "Ideas",
         "readMore": "Leer más"
+    },
+    "contact": {
+        "button": "Hablar por WhatsApp",
+        "prefill": "Hola, me gustaría comentar un proyecto con Horchata Labs.",
+        "namePlaceholder": "Tu nombre",
+        "messagePlaceholder": "Cuéntanos sobre tu proyecto.",
+        "send": "Enviar",
+        "sending": "Enviando…",
+        "success": "Mensaje enviado. Gracias.",
+        "error": {
+        "invalid": "Revisa tu nombre, email y mensaje.",
+        "config": "Servidor no configurado. Inténtalo más tarde.",
+        "generic": "No se pudo enviar tu mensaje. Inténtalo de nuevo."
+        }
     }
 }
