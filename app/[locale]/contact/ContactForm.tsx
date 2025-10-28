@@ -1,7 +1,6 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-// ✅ named type import (not default)
 import type { FormState } from "./actions";
 
 export default function ContactForm({
@@ -10,7 +9,7 @@ export default function ContactForm({
   t,
 }: {
   locale: string;
-  action: (prevState: FormState, formData: FormData) => Promise<FormState>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   t: (k: string) => string;
 }) {
   const initialState: FormState = null;
@@ -31,10 +30,15 @@ export default function ContactForm({
       <input type="hidden" name="locale" value={locale} />
       <input type="text" name="company" className="hidden" tabIndex={-1} autoComplete="off" />
 
-      {/* fields… */}
+      <input name="name" placeholder={t("namePlaceholder")}
+             className="w-full border p-2 rounded bg-white dark:bg-neutral-900" required />
+      <input type="email" name="email" placeholder="you@company.com"
+             className="w-full border p-2 rounded bg-white dark:bg-neutral-900" required />
+      <textarea name="message" placeholder={t("messagePlaceholder")}
+                className="w-full border p-2 rounded h-32 bg-white dark:bg-neutral-900" required />
 
       <button type="submit" disabled={pending}
-        className="inline-flex items-center justify-center px-5 py-2 rounded-md border font-medium hover:opacity-90">
+              className="inline-flex items-center justify-center px-5 py-2 rounded-md border font-medium hover:opacity-90">
         {pending ? t("sending") : t("send")}
       </button>
 

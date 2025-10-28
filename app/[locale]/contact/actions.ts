@@ -3,15 +3,13 @@
 import { Resend } from 'resend';
 import { checkBotId } from 'botid/server';
 
-// ✅ export the type
 export type FormState = { ok: boolean; error?: string } | null;
 
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === '1';
 const API_KEY = process.env.RESEND_API_KEY!;
-const FROM   = process.env.CONTACT_FROM!;
-const TO     = process.env.CONTACT_TO!;
+const FROM    = process.env.CONTACT_FROM!;
+const TO      = process.env.CONTACT_TO!;
 
-// NOTE: prevState param is required by useFormState
 export async function submitContact(
   _prevState: FormState,
   formData: FormData
@@ -22,6 +20,7 @@ export async function submitContact(
       : await checkBotId().catch(() => ({ isBot: false }));
     if (isBot) return { ok: true };
 
+    // honeypot
     if ((formData.get('company') || '').toString().trim()) return { ok: true };
 
     const name    = (formData.get('name') || '').toString().trim();
@@ -54,7 +53,7 @@ export async function submitContact(
     await resend.emails.send({
       from: FROM,
       to: TO,
-      replyTo: email,
+      replyTo: email, // camelCase
       subject: subjInternal,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
