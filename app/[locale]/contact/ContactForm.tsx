@@ -1,9 +1,8 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-import type { FormEvent } from "react";
-
-type SubmitFn = (formData: FormData) => Promise<{ ok: boolean; error?: string }>;
+// ✅ named type import (not default)
+import type { FormState } from "./actions";
 
 export default function ContactForm({
   locale,
@@ -11,51 +10,31 @@ export default function ContactForm({
   t,
 }: {
   locale: string;
-  action: SubmitFn;
+  action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   t: (k: string) => string;
 }) {
-  const [state, formAction] = useFormState(action as any, null);
+  const initialState: FormState = null;
+  const [state, formAction] = useFormState<FormState, FormData>(action, initialState);
   const { pending } = useFormStatus();
 
-  // map server error codes -> localized messages
-  const errMsg = state?.error
-    ? state.error === "invalid"
+  const errMsg =
+    state?.error === "invalid"
       ? t("error.invalid")
-      : state.error === "config"
+      : state?.error === "config"
       ? t("error.config")
-      : t("error.generic")
-    : null;
+      : state?.error
+      ? t("error.generic")
+      : null;
 
   return (
-    <form action={formAction} noValidate className="space-y-3 max-w-md">
+    <form action={formAction} method="post" noValidate className="space-y-3 max-w-md">
       <input type="hidden" name="locale" value={locale} />
       <input type="text" name="company" className="hidden" tabIndex={-1} autoComplete="off" />
 
-      <input
-        name="name"
-        placeholder={t("namePlaceholder")}
-        className="w-full border p-2 rounded bg-white dark:bg-neutral-900"
-        required
-      />
-      <input
-        type="email"
-        name="email"
-        placeholder="you@company.com"
-        className="w-full border p-2 rounded bg-white dark:bg-neutral-900"
-        required
-      />
-      <textarea
-        name="message"
-        placeholder={t("messagePlaceholder")}
-        className="w-full border p-2 rounded h-32 bg-white dark:bg-neutral-900"
-        required
-      />
+      {/* fields… */}
 
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center px-5 py-2 rounded-md border font-medium hover:opacity-90"
-        disabled={pending}
-      >
+      <button type="submit" disabled={pending}
+        className="inline-flex items-center justify-center px-5 py-2 rounded-md border font-medium hover:opacity-90">
         {pending ? t("sending") : t("send")}
       </button>
 
