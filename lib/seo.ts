@@ -16,8 +16,8 @@ const abs = (p: string) => (p.startsWith("http") ? p : `${BASE_URL}${p}`);
 export function defaultMetadata(locale: string): Metadata {
   const isEs = locale === "es";
   const title = isEs
-    ? "Horchata Labs — Posicionamiento y Branding Digital, SEO Técnico y Análisis"
-    : "Horchata Labs — Digital Positioning & Branding, Technical SEO and Analytics";
+    ? "Horchata Labs — Posicionamiento y Branding Digital, SEO Técnico y Análisis de Datos"
+    : "Horchata Labs — Digital Positioning & Branding, Technical SEO and Data Analytics";
   const description = isEs ? SITE_DESC_ES : SITE_DESC_EN;
 
   return {
