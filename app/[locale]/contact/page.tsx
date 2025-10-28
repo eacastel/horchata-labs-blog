@@ -22,11 +22,8 @@ export default async function Contact({ params }: { params:{ locale:string } }) 
         {t("button")}
       </Link>
 
-      <ContactForm
-        locale={locale}
-        action={submitContact}
-        t={(k) => t(k)}
-      />
+<ContactForm locale={locale} action={submitContact} t={(k)=>t(k)} />
+
     </section>
   );
 }
