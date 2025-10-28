@@ -7,10 +7,10 @@ export default async function Home({ params }: { params: { locale: string } }) {
   const t = await getTranslations({ locale: params.locale });
   return (
     <section className="space-y-6">
-      <h1 className="whitespace-pre-line text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+      <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
         {t("home.title")}
       </h1>
-      <p>
+      <p className="whitespace-pre-line">
         {t("home.intro")}
       </p>
       <a
