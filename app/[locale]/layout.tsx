@@ -8,6 +8,7 @@ import { defaultMetadata } from "../../lib/seo";
 import "../globals.css";
 import Link from "next/link";
 import Script from "next/script";
+import { getTranslations } from "next-intl/server";
 
 // Safe import; we’ll guard rendering below
 import { BotIdClient } from "botid/client";
@@ -39,6 +40,9 @@ export default async function LocaleLayout({
   const { locale } = params;
   if (!locales.includes(locale)) notFound();
   const messages = (await import(`../../messages/${locale}.json`)).default;
+  const t = await getTranslations({ locale, namespace: "footer" }); 
+    const year = new Date().getFullYear();
+  const brand = "Horchata Labs";
 
   const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
@@ -122,7 +126,7 @@ export default async function LocaleLayout({
 
           <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-700 dark:text-neutral-300">
             <div className="max-w-content mx-auto p-4 text-sm">
-              © {new Date().getFullYear()} Horchata Labs. All rights reserved.
+              {t("rights", { year, brand })}
             </div>
           </footer>
         </NextIntlClientProvider>
