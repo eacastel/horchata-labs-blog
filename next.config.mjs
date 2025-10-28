@@ -49,4 +49,5 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+// Compose: BotID first, then next-intl
+export default withNextIntl(withBotId(nextConfig));

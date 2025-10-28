@@ -53,7 +53,13 @@ export default async function LocaleLayout({
         <link rel="manifest" href="/site.webmanifest" />
 
         {/* Vercel BotID client protection */}
-        <BotIdClient protect={protectedRoutes} />
+        {/* BotID client — protects your contact POST routes */}
+      <BotIdClient
+        protect={[
+          { path: "/en/contact", method: "POST" },
+          { path: "/es/contact", method: "POST" },
+        ]}
+      />
 
         {/* Google Tag Manager (if configured) */}
         {GTM_ID && (
