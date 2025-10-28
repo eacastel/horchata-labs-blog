@@ -58,7 +58,6 @@ export default async function LocaleLayout({
                     decoding="async"
                   />
                 </picture>
-                <span>Horchata Labs</span>
               </Link>
 
               <div className="flex gap-4 text-sm items-center">
