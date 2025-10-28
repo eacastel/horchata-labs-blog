@@ -1,4 +1,5 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withBotId } from 'botid/next/config';
 
 // Path to your i18n config
 const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts');
@@ -21,14 +22,28 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/:locale(es|en)/terminos-y-condiciones-generales',
+        destination: '/:locale/blog/terminos-y-condiciones-generales',
+        permanent: true,
+      },
+      {
+        source: '/:locale(es|en)/terminos-y-condiciones-generales/',
+        destination: '/:locale/blog/terminos-y-condiciones-generales',
+        permanent: true,
+      },
+
+      // Root (no locale) → force Spanish blog slug
+      {
+        source: '/terminos-y-condiciones-generales',
+        destination: '/es/blog/terminos-y-condiciones-generales',
+        permanent: true,
+        locale: false, // <- critical: don't auto-add /es here
+      },
+      {
         source: '/terminos-y-condiciones-generales/',
         destination: '/es/blog/terminos-y-condiciones-generales',
-        permanent: true, // 308 redirect for SEO
-      },
-            {
-        source: '/general-terms-and-conditions/',
-        destination: '/en/blog/general-terms-and-conditions',
-        permanent: true, // 308 redirect for SEO
+        permanent: true,
+        locale: false,
       },
     ];
   },

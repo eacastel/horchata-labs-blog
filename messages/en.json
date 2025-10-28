@@ -9,6 +9,12 @@
         "intro": "Horchata Labs is a creative-tech agency in Valencia that helps brands launch, grow, and measure their digital presence through strategy, design, and data-driven marketing.",
         "cta": "Get in touch"
     },
+    "contact": {
+        "title": "Contact",
+        "subtitle": "Message us on WhatsApp or use the form and we’ll reply as soon as possible.",
+        "button": "Contact on WhatsApp",
+        "prefill": "Hi, I’d like more information about Horchata Labs’ services"
+    },
     "blog": {
         "title": "Insights",
         "readMore": "Read more"
