@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: { DEFAULT: '#f2b425', dark: '#d19a1c' },
+        brand: { DEFAULT: '#5bb9ba', dark: '#5bb9ba' },
       },
       fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
       maxWidth: { content: '64rem' },

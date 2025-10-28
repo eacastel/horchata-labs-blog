@@ -6,7 +6,7 @@ export default function Contact() {
     <section className="space-y-4">
       <h1>Contact</h1>
       <p>
-        Drop your email and what you need. (Wire up to Formspark/Resend later.)
+        Drop your email and what you need. 
       </p>
       <form className="space-y-3 max-w-md">
         <input
