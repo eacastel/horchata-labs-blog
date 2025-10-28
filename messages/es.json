@@ -6,7 +6,7 @@
     },
     "home": {
         "title": "Horchata Labs",
-        "intro": "Horchata Labs es una agencia creativa y tecnológica en Valencia que ayuda a las marcas a lanzar, crecer y medir su presencia digital mediante estrategia, diseño y marketing basado en datos.",
+        "intro": "Horchata Labs es un estudio creativo-tecnológico con sede en Valencia, España, especializado en posicionamiento, branding digital y SEO técnico.  Entregamos webs y funnels en Next.js + TypeScript con next-intl (multi-idioma), server actions, optimización de imágenes y rendimiento Lighthouse impecable.  Integramos GA4 + GTM (Consent Mode, CookieYes), ejecutamos SEO técnico y contenidos que posicionan de verdad, para lanzar más rápido y tomar decisiones basadas en datos.",
         "cta": "Hablemos"
     },
     "blog": {
