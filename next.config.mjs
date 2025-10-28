@@ -17,6 +17,21 @@ const nextConfig = {
     deviceSizes: [320, 640, 960, 1200, 1600], // responsive sizes Next.js will generate
     imageSizes: [16, 32, 48, 64, 96],      // for small inline images (like logos)
   },
+  // ✅ Add redirects here
+  async redirects() {
+    return [
+      {
+        source: '/terminos-y-condiciones-generales/',
+        destination: '/es/blog/terminos-y-condiciones-generales',
+        permanent: true, // 308 redirect for SEO
+      },
+            {
+        source: '/general-terms-and-conditions/',
+        destination: '/en/blog/general-terms-and-conditions',
+        permanent: true, // 308 redirect for SEO
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
