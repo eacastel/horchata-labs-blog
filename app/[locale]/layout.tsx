@@ -105,9 +105,11 @@ export default async function LocaleLayout({
               </Link>
 
               <div className="flex gap-4 text-sm items-center">
-                <Link href={`/${locale}/blog`} className="text-neutral-700 dark:text-neutral-200 hover:text-brand">
+                {/*
+                 <Link href={`/${locale}/blog`} className="text-neutral-700 dark:text-neutral-200 hover:text-brand">
                   Blog
                 </Link>
+                */}
                 <Link href={`/${locale}/contact`} className="text-neutral-700 dark:text-neutral-200 hover:text-brand">
                   Contact
                 </Link>
