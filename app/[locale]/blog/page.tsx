@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { listPosts } from "../../../lib/contentful";
+import { listPosts } from '@lib/contentful';
 import Link from "next/link";
 
 export const revalidate = 60;

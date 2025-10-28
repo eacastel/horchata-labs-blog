@@ -95,3 +95,33 @@ function normalizeImageUrl(url?: string): string | undefined {
   if (!url) return undefined;
   return url.startsWith('//') ? `https:${url}` : url.startsWith('http') ? url : `https:${url}`;
 }
+
+// add right slug
+export async function getAlternatePostSlug(
+  currentSlug: string,
+  from: string,
+  to: string
+): Promise<string | null> {
+  const fromLocale = cfLocale(from);
+  const toLocale = cfLocale(to);
+
+  // 1) Find the entry by its slug in the "from" locale
+  const res = await client.getEntries({
+    content_type: 'blogPost',
+    'fields.slug': currentSlug,
+    limit: 1,
+    locale: fromLocale
+  } as any);
+
+  const item = (res as any).items?.[0];
+  if (!item) return null;
+
+  const id = item.sys?.id;
+  if (!id) return null;
+
+  // 2) Fetch the same entry in the "to" locale to read its localized slug
+  const localized = await client.getEntry(id, { locale: toLocale } as any);
+  const altSlug = (localized as any)?.fields?.slug;
+
+  return typeof altSlug === 'string' && altSlug.trim().length > 0 ? altSlug : null;
+}

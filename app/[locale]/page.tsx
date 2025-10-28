@@ -10,8 +10,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
         {t("home.title")}
       </h1>
       <p>
-        Lightweight Next.js starter with i18n, Contentful, Tailwind, and a clean
-        blog to repurpose for site + funnels.
+        {t("home.intro")}
       </p>
       <a
         href={`/${params.locale}/contact`}
