@@ -74,7 +74,7 @@ export default async function LocaleLayout({
         )}
       </head>
 
-      <body className="font-sans text-base text-neutral-900 antialiased">
+      <body className="font-sans text-base text-neutral-900 antialiased md:mx-2">
         {GTM_ID && (
           <noscript>
             <iframe
@@ -94,13 +94,13 @@ export default async function LocaleLayout({
                 className="flex items-center gap-2 font-semibold text-neutral-900 dark:text-neutral-100"
                 aria-label="Horchata Labs Home"
               >
-                <picture>
+                <picture className="mx-2">
                   <source srcSet="/images/horchata-mark-dark.png" media="(prefers-color-scheme: dark)" />
                   <img
                     src="/images/horchata-mark-light.png"
                     alt="Horchata Labs"
-                    width={170}
-                    height={170}
+                    width={100}
+                    height={100}
                     className="rounded-md"
                     loading="eager"
                     decoding="async"

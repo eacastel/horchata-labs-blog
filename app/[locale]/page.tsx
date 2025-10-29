@@ -15,7 +15,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
       </p>
       <a
         href={`/${params.locale}/contact`}
-        className="inline-block px-4 py-2 border rounded hover:bg-brand hover:text-black"
+        className="inline-block mx-2 px-4 py-2 border rounded hover:bg-brand hover:text-black"
       >
         {t("home.cta")}
       </a>
