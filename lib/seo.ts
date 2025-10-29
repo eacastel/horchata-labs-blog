@@ -73,7 +73,7 @@ export function defaultMetadata(locale: string): Metadata {
     },
 
     // Optional: only if you actually have the file
-    // manifest: "/site.webmanifest",
+    manifest: "/site.webmanifest",
 
     themeColor: [
       { media: "(prefers-color-scheme: light)", color: "#ffffff" },
