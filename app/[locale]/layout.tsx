@@ -13,7 +13,9 @@ import { getTranslations } from "next-intl/server";
 // Safe import; we’ll guard rendering below
 import { BotIdClient } from "botid/client";
 
-const locales = (process.env.NEXT_PUBLIC_AVAILABLE_LOCALES || "en,es").split(",");
+const locales = (process.env.NEXT_PUBLIC_AVAILABLE_LOCALES || "en,es").split(
+  ","
+);
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === "1";
 
 export async function generateMetadata({
@@ -40,8 +42,8 @@ export default async function LocaleLayout({
   const { locale } = params;
   if (!locales.includes(locale)) notFound();
   const messages = (await import(`../../messages/${locale}.json`)).default;
-  const t = await getTranslations({ locale, namespace: "footer" }); 
-    const year = new Date().getFullYear();
+  const t = await getTranslations({ locale, namespace: "footer" });
+  const year = new Date().getFullYear();
   const brand = "Horchata Labs";
 
   const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
@@ -50,16 +52,32 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
-        <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#000000" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/icons/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/icons/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/icons/favicon-16x16.png"
+        />
+        <link
+          rel="mask-icon"
+          href="/icons/safari-pinned-tab.svg"
+          color="#000000"
+        />
         <link rel="manifest" href="/site.webmanifest" />
 
         {/* Render BotID client only when enabled */}
-        {!DISABLE_BOTID && (
-          <BotIdClient protect={protectedRoutes} />
-        )}
+        {!DISABLE_BOTID && <BotIdClient protect={protectedRoutes} />}
 
         {GTM_ID && (
           <Script id="gtm" strategy="afterInteractive">
@@ -95,7 +113,10 @@ export default async function LocaleLayout({
                 aria-label="Horchata Labs Home"
               >
                 <picture className="mx-2">
-                  <source srcSet="/images/horchata-mark-dark.png" media="(prefers-color-scheme: dark)" />
+                  <source
+                    srcSet="/images/horchata-mark-dark.png"
+                    media="(prefers-color-scheme: dark)"
+                  />
                   <img
                     src="/images/horchata-mark-light.png"
                     alt="Horchata Labs"
@@ -114,7 +135,10 @@ export default async function LocaleLayout({
                   Blog
                 </Link>
                 */}
-                <Link href={`/${locale}/contact`} className="text-neutral-700 dark:text-neutral-200 hover:text-brand">
+                <Link
+                  href={`/${locale}/contact`}
+                  className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
+                >
                   Contact
                 </Link>
                 <LanguageSwitch locale={locale} />
@@ -130,6 +154,59 @@ export default async function LocaleLayout({
             </div>
           </footer>
         </NextIntlClientProvider>
+
+        <Script id="aliigo-widget" strategy="afterInteractive">
+          {`
+(function () {
+  var base = '${
+    process.env.NEXT_PUBLIC_ALIIGO_ORIGIN ?? "https://aliigo.vercel.app"
+  }';
+  var slug = 'horchata-labs';
+  var brand = 'Aliigo';
+  var token = '${process.env.NEXT_PUBLIC_ALIIGO_TOKEN ?? "PASTE_TOKEN_HERE"}';
+  if (!token || token === "PASTE_TOKEN_HERE") { console.warn("[Aliigo] Missing token"); return; }
+
+  var theme = encodeURIComponent(JSON.stringify({
+    headerBg: "bg-gray-900",
+    headerText: "text-white",
+    bubbleUser: "bg-blue-600 text-white",
+    bubbleBot: "bg-gray-100 text-gray-900",
+    sendBg: "bg-blue-600",
+    sendText: "text-white"
+  }));
+
+  var iframe = document.createElement('iframe');
+  iframe.src = base + '/embed/chat?slug=' + slug + '&brand=' + encodeURIComponent(brand) + '&token=' + encodeURIComponent(token) + '&theme=' + theme;
+  iframe.style.position = 'fixed';
+  iframe.style.bottom = '24px';
+  iframe.style.right = '24px';
+  iframe.style.width = '360px';
+  iframe.style.height = '420px';
+  iframe.style.border = '0';
+  iframe.style.zIndex = '999999';
+  iframe.setAttribute('title', 'Aliigo chat');
+
+  function applyMobileSize() {
+    if (window.innerWidth < 480) {
+      iframe.style.width = '100%';
+      iframe.style.right = '0';
+      iframe.style.left = '0';
+      iframe.style.height = '50vh';
+      iframe.style.bottom = '0';
+    } else {
+      iframe.style.width = '360px';
+      iframe.style.height = '420px';
+      iframe.style.right = '24px';
+      iframe.style.left = '';
+    }
+  }
+
+  window.addEventListener('resize', applyMobileSize);
+  document.body.appendChild(iframe);
+  applyMobileSize();
+})();
+`}
+        </Script>
       </body>
     </html>
   );
