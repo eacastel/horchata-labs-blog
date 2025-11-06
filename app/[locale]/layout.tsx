@@ -156,15 +156,13 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
 
         <Script id="aliigo-widget" strategy="afterInteractive">
-          {`
+{`
 (function () {
-  var base = '${
-    process.env.NEXT_PUBLIC_ALIIGO_ORIGIN ?? "https://aliigo.vercel.app"
-  }';
-  var slug = 'horchata-labs';
+  var base  = '${process.env.NEXT_PUBLIC_ALIIGO_ORIGIN ?? "https://aliigo.vercel.app"}';
+  var slug  = 'horchata-labs';
   var brand = 'Aliigo';
-  var token = '${process.env.NEXT_PUBLIC_ALIIGO_TOKEN ?? "3b4d0b4345b4d9927bbb7910ba69975f5ae4c5ad69772e21"}';
-  if (!token || token === "3b4d0b4345b4d9927bbb7910ba69975f5ae4c5ad69772e21") { console.warn("[Aliigo] Missing token"); return; }
+  var token = '${process.env.NEXT_PUBLIC_ALIIGO_TOKEN ?? ""}';
+  if (!token) { console.warn("[Aliigo] Missing token"); return; }
 
   var theme = encodeURIComponent(JSON.stringify({
     headerBg: "bg-gray-900",
@@ -175,29 +173,35 @@ export default async function LocaleLayout({
     sendText: "text-white"
   }));
 
+  var url = base + '/embed/chat'
+    + '?slug='  + encodeURIComponent(slug)
+    + '&brand=' + encodeURIComponent(brand)
+    + '&token=' + encodeURIComponent(token)
+    + '&theme=' + theme;
+
   var iframe = document.createElement('iframe');
-  iframe.src = base + '/embed/chat?slug=' + slug + '&brand=' + encodeURIComponent(brand) + '&token=' + encodeURIComponent(token) + '&theme=' + theme;
+  iframe.src = url;
+  iframe.title = 'Aliigo chat';
   iframe.style.position = 'fixed';
-  iframe.style.bottom = '24px';
-  iframe.style.right = '24px';
-  iframe.style.width = '360px';
-  iframe.style.height = '420px';
-  iframe.style.border = '0';
-  iframe.style.zIndex = '999999';
-  iframe.setAttribute('title', 'Aliigo chat');
+  iframe.style.bottom   = '24px';
+  iframe.style.right    = '24px';
+  iframe.style.width    = '360px';
+  iframe.style.height   = '420px';
+  iframe.style.border   = '0';
+  iframe.style.zIndex   = '2147483647';
 
   function applyMobileSize() {
     if (window.innerWidth < 480) {
-      iframe.style.width = '100%';
-      iframe.style.right = '0';
-      iframe.style.left = '0';
+      iframe.style.width  = '100%';
+      iframe.style.right  = '0';
+      iframe.style.left   = '0';
       iframe.style.height = '50vh';
       iframe.style.bottom = '0';
     } else {
-      iframe.style.width = '360px';
+      iframe.style.width  = '360px';
       iframe.style.height = '420px';
-      iframe.style.right = '24px';
-      iframe.style.left = '';
+      iframe.style.right  = '24px';
+      iframe.style.left   = '';
     }
   }
 
@@ -206,7 +210,8 @@ export default async function LocaleLayout({
   applyMobileSize();
 })();
 `}
-        </Script>
+</Script>
+
       </body>
     </html>
   );
