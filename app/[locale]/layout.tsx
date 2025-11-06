@@ -163,8 +163,8 @@ export default async function LocaleLayout({
   }';
   var slug = 'horchata-labs';
   var brand = 'Aliigo';
-  var token = '${process.env.NEXT_PUBLIC_ALIIGO_TOKEN ?? "PASTE_TOKEN_HERE"}';
-  if (!token || token === "PASTE_TOKEN_HERE") { console.warn("[Aliigo] Missing token"); return; }
+  var token = '${process.env.NEXT_PUBLIC_ALIIGO_TOKEN ?? "3b4d0b4345b4d9927bbb7910ba69975f5ae4c5ad69772e21"}';
+  if (!token || token === "3b4d0b4345b4d9927bbb7910ba69975f5ae4c5ad69772e21") { console.warn("[Aliigo] Missing token"); return; }
 
   var theme = encodeURIComponent(JSON.stringify({
     headerBg: "bg-gray-900",
