@@ -155,7 +155,7 @@ export default async function LocaleLayout({
           </footer>
         </NextIntlClientProvider>
 
-        <Script id="aliigo-widget" strategy="afterInteractive">
+        {/* <Script id="aliigo-widget" strategy="afterInteractive">
 {`
 (function () {
   var base  = '${process.env.NEXT_PUBLIC_ALIIGO_ORIGIN ?? "https://aliigo.vercel.app"}';
@@ -210,7 +210,7 @@ export default async function LocaleLayout({
   applyMobileSize();
 })();
 `}
-</Script>
+</Script> */}
 
       </body>
     </html>
