@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 const SITE_NAME = "Horchata Labs";
 const SITE_DESC_EN =
-  "Horchata Labs is a premium boutique creative-tech agency based in Valencia, Spain, specialized in digital positioning, branding, and technical SEO. We build high-performance Next.js websites with analytics, automation, and AI-assisted strategy to keep brands ahead of the curve.";
+  "Horchata Labs is a premium boutique creative-tech agency in Valencia specializing in technical SEO, digital branding, and high-performance Next.js websites for brands that demand quality. We integrate analytics, automation, and AI-assisted strategy to keep you ahead.";
 const SITE_DESC_ES =
   "Horchata Labs es una agencia boutique creativo-tecnológica con sede en Valencia, especializada en posicionamiento digital, branding y SEO técnico. Creamos webs en Next.js para marcas que exigen calidad. Impulsamos tu posicionamiento con IA, analítica y automatización.";
 
@@ -15,8 +15,8 @@ const abs = (p: string) => (p.startsWith("http") ? p : `${BASE_URL}${p}`);
 export function defaultMetadata(locale: string): Metadata {
   const isEs = locale === "es";
   const title = isEs
-    ? "Horchata Labs — Agencia Boutique Creativo-Tecnológica en Valencia · SEO Técnico, Branding y Web con IA"
-    : "Horchata Labs — Premium Boutique Creative-Tech Agency in Valencia · Technical SEO, Branding & AI-Driven Web";
+    ? "Horchata Labs — Agencia Boutique Creativo-Tecnológica en Valencia · SEO Técnico, Branding y Web Next.js"
+    : "Horchata Labs — Premium Boutique Creative-Tech Agency in Valencia · Technical SEO, Branding & Next.js Web";
   const description = isEs ? SITE_DESC_ES : SITE_DESC_EN;
 
   return {
