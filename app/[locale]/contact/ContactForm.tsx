@@ -1,8 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
-import type { FormState } from "./actions"; // or match your inline type
+import type { FormState } from "./actions";
 
 export default function ContactForm({
   locale,
@@ -13,8 +14,17 @@ export default function ContactForm({
 }) {
   const t = useTranslations("contact");
   const initialState: FormState = null;
-  const [state, formAction] = useFormState<FormState, FormData>(action, initialState);
+  const [state, formAction] = useFormState<FormState, FormData>(
+    action,
+    initialState
+  );
   const { pending } = useFormStatus();
+
+  // Freeze first render time for time-trap
+  const startedAtRef = useRef<string>("");
+  if (!startedAtRef.current) {
+    startedAtRef.current = Date.now().toString();
+  }
 
   const errMsg =
     state?.error === "invalid"
@@ -26,10 +36,40 @@ export default function ContactForm({
       : null;
 
   return (
-    <form action={formAction} method="post" noValidate className="space-y-3 max-w-md">
+    <form
+      action={formAction}
+      method="post"
+      noValidate
+      className="space-y-3 max-w-md"
+    >
+      {/* Locale for ES / EN handling in the server action */}
       <input type="hidden" name="locale" value={locale} />
-      <input type="text" name="company" className="hidden" tabIndex={-1} autoComplete="off" />
 
+      {/* Time trap */}
+      <input
+        type="hidden"
+        name="formStartedAt"
+        value={startedAtRef.current}
+      />
+
+      {/* Honeypots (hidden from humans, bots love these) */}
+      <input
+        type="text"
+        name="company"
+        className="hidden"
+        tabIndex={-1}
+        autoComplete="off"
+      />
+
+      <input
+        type="text"
+        name="website"
+        className="hidden"
+        tabIndex={-1} // <- number, fixes TS
+        autoComplete="off"
+      />
+
+      {/* Real fields */}
       <input
         name="name"
         placeholder={t("namePlaceholder")}
