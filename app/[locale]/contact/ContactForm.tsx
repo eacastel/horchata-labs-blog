@@ -26,14 +26,9 @@ export default function ContactForm({
     startedAtRef.current = Date.now().toString();
   }
 
-  const errMsg =
-    state?.error === "invalid"
-      ? t("error.invalid")
-      : state?.error === "config"
-      ? t("error.config")
-      : state?.error
-      ? t("error.generic")
-      : null;
+  // Map server error code -> translated string
+  const errKey = state?.ok === false ? state.error : undefined;
+  const errMsg = errKey ? t(`error.${errKey}` as any) : null;
 
   return (
     <form
@@ -42,7 +37,7 @@ export default function ContactForm({
       noValidate
       className="space-y-3 max-w-md"
     >
-      {/* Locale for ES / EN handling in the server action */}
+      {/* Locale for ES / EN handling on the server */}
       <input type="hidden" name="locale" value={locale} />
 
       {/* Time trap */}
@@ -52,7 +47,7 @@ export default function ContactForm({
         value={startedAtRef.current}
       />
 
-      {/* Honeypots (hidden from humans, bots love these) */}
+      {/* Honeypots (hidden from humans) */}
       <input
         type="text"
         name="company"
@@ -60,7 +55,6 @@ export default function ContactForm({
         tabIndex={-1}
         autoComplete="off"
       />
-
       <input
         type="text"
         name="website"

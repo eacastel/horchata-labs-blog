@@ -1,0 +1,13 @@
+{
+  "namePlaceholder": "Tu nombre",
+  "messagePlaceholder": "Cuéntanos un poco sobre tu proyecto o consulta",
+  "send": "Enviar",
+  "sending": "Enviando…",
+  "success": "¡Gracias! Tu mensaje se ha enviado correctamente.",
+  "error": {
+    "invalid": "Revisa tu nombre, email y mensaje.",
+    "config": "No se pudo enviar el mensaje por un problema interno.",
+    "spam": "Tu mensaje es demasiado corto o parece automático. Añade un poco más de información e inténtalo de nuevo.",
+    "generic": "No se ha podido enviar el mensaje. Inténtalo más tarde."
+  }
+}

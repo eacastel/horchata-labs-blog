@@ -3,13 +3,16 @@
 import { Resend } from "resend";
 import { checkBotId } from "botid/server";
 
-export type FormState = { ok: boolean; error?: string } | null;
+export type FormState =
+  | { ok: boolean; error?: "invalid" | "config" | "spam" | "generic" }
+  | null;
 
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === "1";
 const API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.CONTACT_FROM;
 const TO = process.env.CONTACT_TO;
 
+// Heuristic spam checker – tune as needed
 function looksLikeSpamMessage(message: string): boolean {
   const lower = message.toLowerCase();
 
@@ -28,7 +31,7 @@ function looksLikeSpamMessage(message: string): boolean {
   const letters = message.match(/[a-zA-Záéíóúñü]/g)?.length ?? 0;
   if (letters / Math.max(message.length, 1) < 0.4) return true;
 
-  // Common spam phrases you can tune over time
+  // Common spam phrases
   const spamPhrases = [
     "guest post",
     "backlinks",
@@ -50,18 +53,6 @@ export async function submitContact(
   formData: FormData
 ): Promise<FormState> {
   try {
-    // 0) Debug log: what did we receive?
-    // (You can comment this out later if it’s noisy)
-    console.log("submitContact formData:", {
-      company: formData.get("company"),
-      website: formData.get("website"),
-      formStartedAt: formData.get("formStartedAt"),
-      name: formData.get("name"),
-      email: formData.get("email"),
-      messageLen: (formData.get("message") || "").toString().length,
-      locale: formData.get("locale"),
-    });
-
     // 1) BotId check
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
@@ -88,9 +79,7 @@ export async function submitContact(
     const startedAt = startedAtRaw ? Number(startedAtRaw) : 0;
     const now = Date.now();
 
-    if (!startedAtRaw) {
-      console.warn("Missing formStartedAt – skipping time trap but continuing");
-    } else if (isFinite(startedAt) && now - startedAt < 1000) {
+    if (startedAt && isFinite(startedAt) && now - startedAt < 1000) {
       console.warn("Blocked by time trap, submitted too fast");
       return { ok: false, error: "invalid" };
     }
@@ -103,16 +92,21 @@ export async function submitContact(
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!name || !isEmail || !message) {
-      console.warn("Invalid fields:", { name, email, messageLen: message.length });
+      console.warn("Invalid fields:", {
+        name,
+        email,
+        messageLen: message.length,
+      });
       return { ok: false, error: "invalid" };
     }
 
     // 5) Anti-spam heuristics
     if (looksLikeSpamMessage(message)) {
       console.warn("Blocked by spam heuristic");
-      return { ok: false, error: "invalid" };
+      return { ok: false, error: "spam" };
     }
 
+    // 6) Check mail config
     if (!API_KEY || !FROM || !TO) {
       console.error("Missing mail env vars", {
         hasAPI_KEY: !!API_KEY,
@@ -124,11 +118,13 @@ export async function submitContact(
 
     const resend = new Resend(API_KEY);
 
+    // Internal subject
     const subjInternal =
       locale === "es"
         ? `Nuevo contacto — Horchata Labs (${name})`
         : `New contact — Horchata Labs (${name})`;
 
+    // Customer auto-reply
     const subjAck =
       locale === "es"
         ? "Hemos recibido tu mensaje — Horchata Labs"
@@ -139,9 +135,7 @@ export async function submitContact(
         ? `Hola ${name},\n\nGracias por escribirnos. Hemos recibido tu mensaje y te responderemos en breve.\n\n— Horchata Labs`
         : `Hi ${name},\n\nThanks for reaching out. We’ve received your message and will reply shortly.\n\n— Horchata Labs`;
 
-    console.log("Calling Resend for internal + ack");
-
-    // 6) Internal notification
+    // 7) Internal notification
     await resend.emails.send({
       from: FROM,
       to: TO,
@@ -150,7 +144,7 @@ export async function submitContact(
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
 
-    // 7) Auto-reply
+    // 8) Auto-reply
     await resend.emails.send({
       from: FROM,
       to: email,
@@ -158,11 +152,9 @@ export async function submitContact(
       text: ackText,
     });
 
-    console.log("submitContact completed OK");
     return { ok: true };
-  } catch (err: any) {
+  } catch (err) {
     console.error("submitContact failed:", err);
-    const msg = err?.message || err?.response?.data?.message || "send-failed";
-    return { ok: false, error: msg };
+    return { ok: false, error: "generic" };
   }
 }
