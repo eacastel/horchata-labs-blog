@@ -50,30 +50,49 @@ export async function submitContact(
   formData: FormData
 ): Promise<FormState> {
   try {
-    // 1) Botid check
+    // 0) Debug log: what did we receive?
+    // (You can comment this out later if it’s noisy)
+    console.log("submitContact formData:", {
+      company: formData.get("company"),
+      website: formData.get("website"),
+      formStartedAt: formData.get("formStartedAt"),
+      name: formData.get("name"),
+      email: formData.get("email"),
+      messageLen: (formData.get("message") || "").toString().length,
+      locale: formData.get("locale"),
+    });
+
+    // 1) BotId check
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
-      : await checkBotId().catch(() => ({ isBot: false }));
+      : await checkBotId().catch((err) => {
+          console.error("checkBotId failed:", err);
+          return { isBot: false };
+        });
+
     if (isBot) {
-      return { ok: true };
+      console.warn("Blocked by BotId");
+      return { ok: false, error: "invalid" };
     }
 
     // 2) Honeypots
     const company = (formData.get("company") || "").toString().trim();
     const website = (formData.get("website") || "").toString().trim();
     if (company || website) {
-      // Silent success: don't send mail, pretend OK
-      return { ok: true };
+      console.warn("Honeypot triggered:", { company, website });
+      return { ok: false, error: "invalid" };
     }
 
-    // 3) Time trap: require at least 3s between render + submit
+    // 3) Time trap: require at least 1s between render + submit
     const startedAtRaw = formData.get("formStartedAt");
     const startedAt = startedAtRaw ? Number(startedAtRaw) : 0;
     const now = Date.now();
 
-    if (!startedAt || now - startedAt < 3000) {
-      // Too fast, likely bot/script; silently ignore
-      return { ok: true };
+    if (!startedAtRaw) {
+      console.warn("Missing formStartedAt – skipping time trap but continuing");
+    } else if (isFinite(startedAt) && now - startedAt < 1000) {
+      console.warn("Blocked by time trap, submitted too fast");
+      return { ok: false, error: "invalid" };
     }
 
     // 4) Basic field validation
@@ -84,16 +103,22 @@ export async function submitContact(
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!name || !isEmail || !message) {
+      console.warn("Invalid fields:", { name, email, messageLen: message.length });
       return { ok: false, error: "invalid" };
     }
 
     // 5) Anti-spam heuristics
     if (looksLikeSpamMessage(message)) {
-      // Silent ok to not give bots feedback
-      return { ok: true };
+      console.warn("Blocked by spam heuristic");
+      return { ok: false, error: "invalid" };
     }
 
     if (!API_KEY || !FROM || !TO) {
+      console.error("Missing mail env vars", {
+        hasAPI_KEY: !!API_KEY,
+        FROM,
+        TO,
+      });
       return { ok: false, error: "config" };
     }
 
@@ -114,6 +139,8 @@ export async function submitContact(
         ? `Hola ${name},\n\nGracias por escribirnos. Hemos recibido tu mensaje y te responderemos en breve.\n\n— Horchata Labs`
         : `Hi ${name},\n\nThanks for reaching out. We’ve received your message and will reply shortly.\n\n— Horchata Labs`;
 
+    console.log("Calling Resend for internal + ack");
+
     // 6) Internal notification
     await resend.emails.send({
       from: FROM,
@@ -131,6 +158,7 @@ export async function submitContact(
       text: ackText,
     });
 
+    console.log("submitContact completed OK");
     return { ok: true };
   } catch (err: any) {
     console.error("submitContact failed:", err);
