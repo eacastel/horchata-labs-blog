@@ -15,7 +15,7 @@
     },
     "contact": {
         "button": "Chatear por WhatsApp",
-        "prefill": "Hola, me gustaría hablar sobre un proyecto.",
+        "prefill": "Hola, me gustaría hablar de un proyecto con Horchata Labs.",
         "namePlaceholder": "Tu nombre",
         "messagePlaceholder": "Cuéntanos sobre tu proyecto.",
         "send": "Enviar",
@@ -23,9 +23,9 @@
         "success": "Mensaje enviado. ¡Gracias!",
         "error": {
             "invalid": "Revisa tu nombre, correo y mensaje.",
-            "tooShort": "El mensaje es demasiado corto. Por favor, añade más contexto.",
-            "config": "Servidor no configurado. Inténtalo más tarde.",
-            "generic": "No se pudo enviar tu mensaje. Inténtalo de nuevo."
+            "tooShort": "Cuéntanos un poco más sobre tu proyecto (unas frases con detalles).",
+            "config": "El servidor no está bien configurado. Inténtalo más tarde.",
+            "generic": "No se pudo enviar el mensaje. Inténtalo de nuevo."
         }
     },
     "footer": {

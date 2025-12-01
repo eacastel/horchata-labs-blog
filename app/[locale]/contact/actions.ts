@@ -66,7 +66,7 @@ export async function submitContact(
 
     if (isBot) {
       console.warn("Blocked by BotId");
-      // Pretend OK to bots, avoid error UI
+      // Pretend OK to bots, avoid visible error
       return { ok: true };
     }
 
@@ -151,8 +151,8 @@ export async function submitContact(
 
     // 8) Internal notification
     await resend.emails.send({
-      from: FROM,
-      to: TO,
+      from: FROM!,
+      to: TO!,
       replyTo: email,
       subject: subjInternal,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
@@ -160,7 +160,7 @@ export async function submitContact(
 
     // 9) Auto-reply
     await resend.emails.send({
-      from: FROM,
+      from: FROM!,
       to: email,
       subject: subjAck,
       text: ackText,
