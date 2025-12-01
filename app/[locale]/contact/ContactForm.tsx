@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import type { FormState } from "./actions";
+import { useRouter } from "next/navigation";
 
 export default function ContactForm({
   locale,
@@ -13,7 +14,6 @@ export default function ContactForm({
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
 }) {
   const t = useTranslations("contact");
-
   const initialState: FormState = null;
   const [state, formAction] = useFormState<FormState, FormData>(
     action,
@@ -21,24 +21,31 @@ export default function ContactForm({
   );
   const { pending } = useFormStatus();
 
+ const router = useRouter(); // only if we re-enable redirect
+
   // Freeze first render time for time-trap
   const startedAtRef = useRef<string>("");
   if (!startedAtRef.current) {
     startedAtRef.current = Date.now().toString();
   }
 
-  // Map error codes -> translation keys within "contact.error"
-  let errMsg: string | null = null;
-  if (state && state.ok === false && state.error) {
-    if (state.error === "invalid") {
-      errMsg = t("error.invalid");
-    } else if (state.error === "config") {
-      errMsg = t("error.config");
-    } else {
-      // "generic" and any unexpected fall back to generic
-      errMsg = t("error.generic");
-    }
-  }
+
+ useEffect(() => {
+   if (state?.ok) {
+     router.push("/"); // or "/thank-you"
+   }
+ }, [state, router]);
+
+  const errKey =
+    state && !state.ok
+      ? state.error === "invalid"
+        ? "error.invalid"
+        : state.error === "config"
+        ? "error.config"
+        : "error.generic"
+      : null;
+
+  const errMsg = errKey ? t(errKey) : null;
 
   return (
     <form
@@ -57,7 +64,7 @@ export default function ContactForm({
         value={startedAtRef.current}
       />
 
-      {/* Honeypots (hidden from humans) */}
+      {/* Honeypots (hidden from humans, bots love these) */}
       <input
         type="text"
         name="company"

@@ -18,7 +18,18 @@ export async function submitContact(
   formData: FormData
 ): Promise<FormState> {
   try {
-    // 1) BotId check (soft-fail to "not bot" on error)
+    // 0) Debug (comment out when done)
+    console.log("submitContact formData:", {
+      company: formData.get("company"),
+      website: formData.get("website"),
+      formStartedAt: formData.get("formStartedAt"),
+      name: formData.get("name"),
+      email: formData.get("email"),
+      messageLen: (formData.get("message") || "").toString().length,
+      locale: formData.get("locale"),
+    });
+
+    // 1) BotId check (but never hard-fail if BotId itself breaks)
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
       : await checkBotId().catch((err) => {
@@ -28,7 +39,7 @@ export async function submitContact(
 
     if (isBot) {
       console.warn("Blocked by BotId");
-      // Treat this as invalid so UI uses the generic invalid text
+      // Treat as invalid so the UI shows the generic invalid message
       return { ok: false, error: "invalid" };
     }
 
@@ -37,7 +48,6 @@ export async function submitContact(
     const website = (formData.get("website") || "").toString().trim();
     if (company || website) {
       console.warn("Honeypot triggered:", { company, website });
-      // Quietly fail as "invalid" to avoid giving hints to bots
       return { ok: false, error: "invalid" };
     }
 
@@ -48,8 +58,8 @@ export async function submitContact(
 
     if (!startedAtRaw) {
       console.warn("Missing formStartedAt – skipping time trap but continuing");
-    } else if (Number.isFinite(startedAt) && now - startedAt < 1000) {
-      console.warn("Blocked by time trap (submitted too fast)");
+    } else if (!Number.isNaN(startedAt) && now - startedAt < 1000) {
+      console.warn("Blocked by time trap, submitted too fast");
       return { ok: false, error: "invalid" };
     }
 
@@ -61,8 +71,10 @@ export async function submitContact(
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    // Keep this simple: just require some chars, valid email, and non-empty message
-    if (!name || !isEmail || !message) {
+    // Simple human-ish checks
+    const MIN_MSG_LEN = 40;
+
+    if (!name || !isEmail || !message || message.length < MIN_MSG_LEN) {
       console.warn("Invalid fields:", {
         name,
         email,
@@ -83,7 +95,6 @@ export async function submitContact(
 
     const resend = new Resend(API_KEY);
 
-    // 6) Subjects & texts (ES/EN)
     const subjInternal =
       locale === "es"
         ? `Nuevo contacto — Horchata Labs (${name})`
@@ -101,7 +112,7 @@ export async function submitContact(
 
     console.log("Calling Resend for internal + ack");
 
-    // 7) Internal notification
+    // 6) Internal notification
     await resend.emails.send({
       from: FROM,
       to: TO,
@@ -110,7 +121,7 @@ export async function submitContact(
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
 
-    // 8) Auto-reply
+    // 7) Auto-reply
     await resend.emails.send({
       from: FROM,
       to: email,
@@ -120,9 +131,8 @@ export async function submitContact(
 
     console.log("submitContact completed OK");
     return { ok: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error("submitContact failed:", err);
-    // Don’t leak internal error messages into the UI – use generic
     return { ok: false, error: "generic" };
   }
 }
