@@ -23,6 +23,7 @@
         "success": "Message sent. Thank you!",
         "error": {
             "invalid": "Please check your name, email and message.",
+            "tooShort": "Your message is too short. Please give us a bit more context.",
             "config": "Server not configured. Try again later.",
             "generic": "Could not send your message. Please try again."
         }

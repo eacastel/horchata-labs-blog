@@ -3,23 +3,50 @@
 import { Resend } from "resend";
 import { checkBotId } from "botid/server";
 
-export type FormState =
-  | { ok: true }
-  | { ok: false; error: "invalid" | "config" | "generic" }
-  | null;
+export type FormState = { ok: boolean; error?: string } | null;
 
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === "1";
 const API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.CONTACT_FROM;
 const TO = process.env.CONTACT_TO;
 
+// Minimum length for a “real” message
+const MIN_MSG_LEN = 60;
+
+/**
+ * Very conservative spam heuristic.
+ * We only block if it's clearly junk (lots of URLs or classic spam phrases).
+ */
+function looksClearlySpammy(message: string): boolean {
+  const lower = message.toLowerCase();
+
+  // Too many URLs
+  const urlMatches = message.match(/https?:\/\/[^\s]+/gi);
+  if (urlMatches && urlMatches.length > 3) return true;
+
+  const spamPhrases = [
+    "guest post",
+    "backlinks",
+    "seo services",
+    "crypto",
+    "investment opportunity",
+    "porn",
+    "adult site",
+    "onlyfans",
+  ];
+
+  if (spamPhrases.some((p) => lower.includes(p))) return true;
+
+  return false;
+}
+
 export async function submitContact(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   try {
-    // 0) Debug (comment out when done)
-    console.log("submitContact formData:", {
+    // Debug summary (safe to keep, or comment out later)
+    console.log("submitContact formData summary:", {
       company: formData.get("company"),
       website: formData.get("website"),
       formStartedAt: formData.get("formStartedAt"),
@@ -29,7 +56,7 @@ export async function submitContact(
       locale: formData.get("locale"),
     });
 
-    // 1) BotId check (but never hard-fail if BotId itself breaks)
+    // 1) BotId check
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
       : await checkBotId().catch((err) => {
@@ -39,8 +66,8 @@ export async function submitContact(
 
     if (isBot) {
       console.warn("Blocked by BotId");
-      // Treat as invalid so the UI shows the generic invalid message
-      return { ok: false, error: "invalid" };
+      // Pretend OK to bots, avoid error UI
+      return { ok: true };
     }
 
     // 2) Honeypots
@@ -48,7 +75,8 @@ export async function submitContact(
     const website = (formData.get("website") || "").toString().trim();
     if (company || website) {
       console.warn("Honeypot triggered:", { company, website });
-      return { ok: false, error: "invalid" };
+      // Silent success: don’t send email, don’t show error
+      return { ok: true };
     }
 
     // 3) Time trap: require at least 1s between render + submit
@@ -58,9 +86,10 @@ export async function submitContact(
 
     if (!startedAtRaw) {
       console.warn("Missing formStartedAt – skipping time trap but continuing");
-    } else if (!Number.isNaN(startedAt) && now - startedAt < 1000) {
+    } else if (Number.isFinite(startedAt) && now - startedAt < 1000) {
       console.warn("Blocked by time trap, submitted too fast");
-      return { ok: false, error: "invalid" };
+      // Again: silent success, looks OK to bots
+      return { ok: true };
     }
 
     // 4) Basic field validation
@@ -70,11 +99,7 @@ export async function submitContact(
     const locale = (formData.get("locale") || "en").toString();
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    // Simple human-ish checks
-    const MIN_MSG_LEN = 40;
-
-    if (!name || !isEmail || !message || message.length < MIN_MSG_LEN) {
+    if (!name || !isEmail || !message) {
       console.warn("Invalid fields:", {
         name,
         email,
@@ -83,7 +108,19 @@ export async function submitContact(
       return { ok: false, error: "invalid" };
     }
 
-    // 5) Env checks
+    // 5) Enforce minimum message length (UX-visible error)
+    if (message.length < MIN_MSG_LEN) {
+      console.warn("Message too short:", { messageLen: message.length });
+      return { ok: false, error: "tooShort" };
+    }
+
+    // 6) Heuristic spam check (silent discard if obviously spam)
+    if (looksClearlySpammy(message)) {
+      console.warn("Blocked by spam heuristic");
+      return { ok: true };
+    }
+
+    // 7) Env sanity check
     if (!API_KEY || !FROM || !TO) {
       console.error("Missing mail env vars", {
         hasAPI_KEY: !!API_KEY,
@@ -112,7 +149,7 @@ export async function submitContact(
 
     console.log("Calling Resend for internal + ack");
 
-    // 6) Internal notification
+    // 8) Internal notification
     await resend.emails.send({
       from: FROM,
       to: TO,
@@ -121,7 +158,7 @@ export async function submitContact(
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
 
-    // 7) Auto-reply
+    // 9) Auto-reply
     await resend.emails.send({
       from: FROM,
       to: email,
@@ -133,6 +170,7 @@ export async function submitContact(
     return { ok: true };
   } catch (err: any) {
     console.error("submitContact failed:", err);
-    return { ok: false, error: "generic" };
+    const msg = err?.message || err?.response?.data?.message || "send-failed";
+    return { ok: false, error: msg };
   }
 }
