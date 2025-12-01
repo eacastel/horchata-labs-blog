@@ -13,13 +13,12 @@ export default function ContactForm({
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
 }) {
   const t = useTranslations("contact");
-  const initialState: FormState = null;
 
+  const initialState: FormState = null;
   const [state, formAction] = useFormState<FormState, FormData>(
     action,
     initialState
   );
-
   const { pending } = useFormStatus();
 
   // Freeze first render time for time-trap
@@ -28,15 +27,18 @@ export default function ContactForm({
     startedAtRef.current = Date.now().toString();
   }
 
-  // Map error codes from server → translation keys
-  let errKey: "invalid" | "config" | "spam" | "generic" | null = null;
-
-  if (state?.error === "invalid") errKey = "invalid";
-  else if (state?.error === "config") errKey = "config";
-  else if (state?.error === "spam") errKey = "spam";
-  else if (state?.error) errKey = "generic";
-
-  const errMsg = errKey ? t(`error.${errKey}`) : null;
+  // Map error codes -> translation keys within "contact.error"
+  let errMsg: string | null = null;
+  if (state && state.ok === false && state.error) {
+    if (state.error === "invalid") {
+      errMsg = t("error.invalid");
+    } else if (state.error === "config") {
+      errMsg = t("error.config");
+    } else {
+      // "generic" and any unexpected fall back to generic
+      errMsg = t("error.generic");
+    }
+  }
 
   return (
     <form
@@ -45,7 +47,7 @@ export default function ContactForm({
       noValidate
       className="space-y-3 max-w-md"
     >
-      {/* Locale for ES / EN handling on the server */}
+      {/* Locale for ES / EN handling in the server action */}
       <input type="hidden" name="locale" value={locale} />
 
       {/* Time trap */}
@@ -55,7 +57,7 @@ export default function ContactForm({
         value={startedAtRef.current}
       />
 
-      {/* Honeypots */}
+      {/* Honeypots (hidden from humans) */}
       <input
         type="text"
         name="company"
@@ -63,7 +65,6 @@ export default function ContactForm({
         tabIndex={-1}
         autoComplete="off"
       />
-
       <input
         type="text"
         name="website"

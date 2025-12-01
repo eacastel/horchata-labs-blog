@@ -24,8 +24,7 @@
         "error": {
             "invalid": "Please check your name, email and message.",
             "config": "Server not configured. Try again later.",
-            "generic": "Could not send your message. Please try again.",
-            "spam": "Your message looks too short or automated. Please add a bit more detail and try again."
+            "generic": "Could not send your message. Please try again."
         }
     },
     "footer": {
