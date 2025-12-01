@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { Resend } from "resend";
 import { checkBotId } from "botid/server";
@@ -6,9 +6,9 @@ import { checkBotId } from "botid/server";
 export type FormState = { ok: boolean; error?: string } | null;
 
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === "1";
-const API_KEY = process.env.RESEND_API_KEY!;
-const FROM = process.env.CONTACT_FROM!;
-const TO = process.env.CONTACT_TO!;
+const API_KEY = process.env.RESEND_API_KEY;
+const FROM = process.env.CONTACT_FROM;
+const TO = process.env.CONTACT_TO;
 
 function looksLikeSpamMessage(message: string): boolean {
   const lower = message.toLowerCase();
@@ -54,7 +54,9 @@ export async function submitContact(
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
       : await checkBotId().catch(() => ({ isBot: false }));
-    if (isBot) return { ok: true };
+    if (isBot) {
+      return { ok: true };
+    }
 
     // 2) Honeypots
     const company = (formData.get("company") || "").toString().trim();
@@ -65,10 +67,12 @@ export async function submitContact(
     }
 
     // 3) Time trap: require at least 3s between render + submit
-    const renderedAtRaw = formData.get("formRenderedAt");
-    const renderedAt = renderedAtRaw ? Number(renderedAtRaw) : 0;
+    const startedAtRaw = formData.get("formStartedAt");
+    const startedAt = startedAtRaw ? Number(startedAtRaw) : 0;
     const now = Date.now();
-    if (!renderedAt || now - renderedAt < 3000) {
+
+    if (!startedAt || now - startedAt < 3000) {
+      // Too fast, likely bot/script; silently ignore
       return { ok: true };
     }
 
@@ -85,11 +89,13 @@ export async function submitContact(
 
     // 5) Anti-spam heuristics
     if (looksLikeSpamMessage(message)) {
-      // You can either silently "ok" or return an error
+      // Silent ok to not give bots feedback
       return { ok: true };
     }
 
-    if (!API_KEY || !FROM || !TO) return { ok: false, error: "config" };
+    if (!API_KEY || !FROM || !TO) {
+      return { ok: false, error: "config" };
+    }
 
     const resend = new Resend(API_KEY);
 
