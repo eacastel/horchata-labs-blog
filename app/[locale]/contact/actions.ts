@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { Resend } from "resend";
 import { checkBotId } from "botid/server";
@@ -10,38 +10,69 @@ const API_KEY = process.env.RESEND_API_KEY!;
 const FROM = process.env.CONTACT_FROM!;
 const TO = process.env.CONTACT_TO!;
 
+function looksLikeSpamMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+
+  // Very short / low-info
+  if (message.length < 25) return true;
+
+  // Needs at least 4 "words"
+  const words = message.split(/\s+/).filter(Boolean);
+  if (words.length < 4) return true;
+
+  // Too many URLs
+  const urlMatches = message.match(/https?:\/\/[^\s]+/gi);
+  if (urlMatches && urlMatches.length > 2) return true;
+
+  // Huge proportion of non-letters (symbols, numbers)
+  const letters = message.match(/[a-zA-Záéíóúñü]/g)?.length ?? 0;
+  if (letters / Math.max(message.length, 1) < 0.4) return true;
+
+  // Common spam phrases you can tune over time
+  const spamPhrases = [
+    "guest post",
+    "backlinks",
+    "seo services",
+    "crypto",
+    "investment opportunity",
+    "porn",
+    "adult site",
+    "onlyfans",
+  ];
+
+  if (spamPhrases.some((p) => lower.includes(p))) return true;
+
+  return false;
+}
+
 export async function submitContact(
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
   try {
-    // BotId check
+    // 1) Botid check
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
       : await checkBotId().catch(() => ({ isBot: false }));
-    if (isBot) return { ok: true }; // silently drop
+    if (isBot) return { ok: true };
 
-    // Honeypots: company + website
+    // 2) Honeypots
     const company = (formData.get("company") || "").toString().trim();
     const website = (formData.get("website") || "").toString().trim();
     if (company || website) {
-      // Bot filled hidden fields -> act like success, but don't send
+      // Silent success: don't send mail, pretend OK
       return { ok: true };
     }
 
-    // Time trap: reject ultra-fast submissions
-    const formStartedAtRaw = (formData.get("formStartedAt") || "").toString();
-    if (formStartedAtRaw) {
-      const startedAt = Number(formStartedAtRaw);
-      if (!Number.isNaN(startedAt)) {
-        const elapsed = Date.now() - startedAt;
-        // < 3 seconds = highly likely bot
-        if (elapsed < 3000) {
-          return { ok: true }; // again, pretend success
-        }
-      }
+    // 3) Time trap: require at least 3s between render + submit
+    const renderedAtRaw = formData.get("formRenderedAt");
+    const renderedAt = renderedAtRaw ? Number(renderedAtRaw) : 0;
+    const now = Date.now();
+    if (!renderedAt || now - renderedAt < 3000) {
+      return { ok: true };
     }
 
+    // 4) Basic field validation
     const name = (formData.get("name") || "").toString().trim();
     const email = (formData.get("email") || "").toString().trim();
     const message = (formData.get("message") || "").toString().trim();
@@ -52,9 +83,13 @@ export async function submitContact(
       return { ok: false, error: "invalid" };
     }
 
-    if (!API_KEY || !FROM || !TO) {
-      return { ok: false, error: "config" };
+    // 5) Anti-spam heuristics
+    if (looksLikeSpamMessage(message)) {
+      // You can either silently "ok" or return an error
+      return { ok: true };
     }
+
+    if (!API_KEY || !FROM || !TO) return { ok: false, error: "config" };
 
     const resend = new Resend(API_KEY);
 
@@ -73,7 +108,7 @@ export async function submitContact(
         ? `Hola ${name},\n\nGracias por escribirnos. Hemos recibido tu mensaje y te responderemos en breve.\n\n— Horchata Labs`
         : `Hi ${name},\n\nThanks for reaching out. We’ve received your message and will reply shortly.\n\n— Horchata Labs`;
 
-    // Internal notification
+    // 6) Internal notification
     await resend.emails.send({
       from: FROM,
       to: TO,
@@ -82,7 +117,7 @@ export async function submitContact(
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
 
-    // Ack to user
+    // 7) Auto-reply
     await resend.emails.send({
       from: FROM,
       to: email,
