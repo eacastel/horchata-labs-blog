@@ -3,35 +3,22 @@
 import { Resend } from "resend";
 import { checkBotId } from "botid/server";
 
-export type FormState =
-  | { ok: boolean; error?: "invalid" | "config" | "spam" | "generic" }
-  | null;
+export type FormState = { ok: boolean; error?: string } | null;
 
 const DISABLE_BOTID = process.env.NEXT_PUBLIC_DISABLE_BOTID === "1";
 const API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.CONTACT_FROM;
 const TO = process.env.CONTACT_TO;
 
-// Heuristic spam checker – tune as needed
+// Very conservative spam filter: only blocks obvious junk
 function looksLikeSpamMessage(message: string): boolean {
   const lower = message.toLowerCase();
 
-  // Very short / low-info
-  if (message.length < 25) return true;
-
-  // Needs at least 4 "words"
-  const words = message.split(/\s+/).filter(Boolean);
-  if (words.length < 4) return true;
-
   // Too many URLs
-  const urlMatches = message.match(/https?:\/\/[^\s]+/gi);
-  if (urlMatches && urlMatches.length > 2) return true;
+  const urlMatches = message.match(/https?:\/\/[^\s]+/gi) ?? [];
+  if (urlMatches.length >= 3) return true;
 
-  // Huge proportion of non-letters (symbols, numbers)
-  const letters = message.match(/[a-zA-Záéíóúñü]/g)?.length ?? 0;
-  if (letters / Math.max(message.length, 1) < 0.4) return true;
-
-  // Common spam phrases
+  // Common spam phrases (you can tune this)
   const spamPhrases = [
     "guest post",
     "backlinks",
@@ -53,7 +40,7 @@ export async function submitContact(
   formData: FormData
 ): Promise<FormState> {
   try {
-    // 1) BotId check
+    // 1) BotId
     const { isBot } = DISABLE_BOTID
       ? { isBot: false }
       : await checkBotId().catch((err) => {
@@ -74,14 +61,16 @@ export async function submitContact(
       return { ok: false, error: "invalid" };
     }
 
-    // 3) Time trap: require at least 1s between render + submit
+    // 3) Time trap: at least 1s between render + submit
     const startedAtRaw = formData.get("formStartedAt");
     const startedAt = startedAtRaw ? Number(startedAtRaw) : 0;
-    const now = Date.now();
 
-    if (startedAt && isFinite(startedAt) && now - startedAt < 1000) {
-      console.warn("Blocked by time trap, submitted too fast");
-      return { ok: false, error: "invalid" };
+    if (startedAt && Number.isFinite(startedAt)) {
+      const delta = Date.now() - startedAt;
+      if (delta < 1000) {
+        console.warn("Blocked by time trap (too fast):", delta, "ms");
+        return { ok: false, error: "invalid" };
+      }
     }
 
     // 4) Basic field validation
@@ -92,21 +81,17 @@ export async function submitContact(
 
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!name || !isEmail || !message) {
-      console.warn("Invalid fields:", {
-        name,
-        email,
-        messageLen: message.length,
-      });
+      console.warn("Invalid fields:", { name, email, messageLen: message.length });
       return { ok: false, error: "invalid" };
     }
 
-    // 5) Anti-spam heuristics
+    // 5) Anti-spam heuristic
     if (looksLikeSpamMessage(message)) {
       console.warn("Blocked by spam heuristic");
       return { ok: false, error: "spam" };
     }
 
-    // 6) Check mail config
+    // 6) Env check
     if (!API_KEY || !FROM || !TO) {
       console.error("Missing mail env vars", {
         hasAPI_KEY: !!API_KEY,
@@ -118,13 +103,11 @@ export async function submitContact(
 
     const resend = new Resend(API_KEY);
 
-    // Internal subject
     const subjInternal =
       locale === "es"
         ? `Nuevo contacto — Horchata Labs (${name})`
         : `New contact — Horchata Labs (${name})`;
 
-    // Customer auto-reply
     const subjAck =
       locale === "es"
         ? "Hemos recibido tu mensaje — Horchata Labs"
@@ -153,8 +136,9 @@ export async function submitContact(
     });
 
     return { ok: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error("submitContact failed:", err);
-    return { ok: false, error: "generic" };
+    const msg = err?.message || err?.response?.data?.message || "send-failed";
+    return { ok: false, error: msg };
   }
 }

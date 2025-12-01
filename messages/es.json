@@ -15,16 +15,17 @@
     },
     "contact": {
         "button": "Hablar por WhatsApp",
-        "prefill": "Hola, me gustaría comentar un proyecto con Horchata Labs.",
+        "prefill": "Hola, me gustaría hablar sobre un proyecto con Horchata Labs.",
         "namePlaceholder": "Tu nombre",
         "messagePlaceholder": "Cuéntanos sobre tu proyecto.",
         "send": "Enviar",
         "sending": "Enviando…",
-        "success": "Mensaje enviado. Gracias.",
+        "success": "Mensaje enviado. ¡Gracias!",
         "error": {
             "invalid": "Revisa tu nombre, email y mensaje.",
-            "config": "Servidor no configurado. Inténtalo más tarde.",
-            "generic": "No se pudo enviar tu mensaje. Inténtalo de nuevo."
+            "config": "El servidor no está bien configurado. Inténtalo de nuevo más tarde.",
+            "generic": "No se pudo enviar tu mensaje. Vuelve a intentarlo.",
+            "spam": "Tu mensaje parece demasiado corto o automático. Añade algunos detalles más y vuelve a intentarlo."
         }
     },
     "footer": {

@@ -14,10 +14,12 @@ export default function ContactForm({
 }) {
   const t = useTranslations("contact");
   const initialState: FormState = null;
+
   const [state, formAction] = useFormState<FormState, FormData>(
     action,
     initialState
   );
+
   const { pending } = useFormStatus();
 
   // Freeze first render time for time-trap
@@ -26,9 +28,15 @@ export default function ContactForm({
     startedAtRef.current = Date.now().toString();
   }
 
-  // Map server error code -> translated string
-  const errKey = state?.ok === false ? state.error : undefined;
-  const errMsg = errKey ? t(`error.${errKey}` as any) : null;
+  // Map error codes from server → translation keys
+  let errKey: "invalid" | "config" | "spam" | "generic" | null = null;
+
+  if (state?.error === "invalid") errKey = "invalid";
+  else if (state?.error === "config") errKey = "config";
+  else if (state?.error === "spam") errKey = "spam";
+  else if (state?.error) errKey = "generic";
+
+  const errMsg = errKey ? t(`error.${errKey}`) : null;
 
   return (
     <form
@@ -47,7 +55,7 @@ export default function ContactForm({
         value={startedAtRef.current}
       />
 
-      {/* Honeypots (hidden from humans) */}
+      {/* Honeypots */}
       <input
         type="text"
         name="company"
@@ -55,6 +63,7 @@ export default function ContactForm({
         tabIndex={-1}
         autoComplete="off"
       />
+
       <input
         type="text"
         name="website"
