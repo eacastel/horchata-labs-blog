@@ -1,19 +1,36 @@
+// app/[locale]/contact/page.tsx
+
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import ContactForm from "./ContactForm";
-import { submitContact } from "./actions"; // or your inline action
+import { submitContact } from "./actions";
 
-export default async function Contact({ params, searchParams }: {
-  params: { locale: string };
-  searchParams: { sent?: string; error?: string };
+export default async function Contact(props: {
+  params: Promise<{ locale: string }> | { locale: string };
+  searchParams?:
+    | Promise<{ sent?: string; error?: string }>
+    | { sent?: string; error?: string };
 }) {
-  const { locale } = params;
-  const t = await getTranslations("contact");
+  // Normalize params (handles plain object or Promise)
+  const rawParams = props.params;
+  const { locale } =
+    rawParams && typeof (rawParams as any).then === "function"
+      ? await (rawParams as Promise<{ locale: string }>)
+      : (rawParams as { locale: string });
 
-  const sent = searchParams?.sent === "1";
-  const error = searchParams?.error === "1";
+  // Normalize searchParams
+  const rawSearch = props.searchParams;
+  const searchParams =
+    rawSearch && typeof (rawSearch as any).then === "function"
+      ? await (rawSearch as Promise<{ sent?: string; error?: string }>)
+      : ((rawSearch ?? {}) as { sent?: string; error?: string });
 
-  // IMPORTANT: bind to satisfy (prevState, formData) signature
+  const t = await getTranslations({ locale, namespace: "contact" });
+
+  const sent = searchParams.sent === "1";
+  const error = searchParams.error === "1";
+
+  // Bind to match (prevState, formData)
   const action = submitContact.bind(null);
 
   const whatsappNumber = "34616189198";
@@ -25,13 +42,18 @@ export default async function Contact({ params, searchParams }: {
       {sent && <p className="text-sm text-green-600">{t("success")}</p>}
       {error && <p className="text-sm text-red-600">{t("error.generic")}</p>}
 
-      {/* 
-      <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-        className="inline-block px-4 py-2 border rounded hover:bg-brand hover:text-black hover:opacity-90">
-        {t("button")}
-      </Link>
-      */}
-      {/* DO NOT pass t here */}
+      {/* Optional WhatsApp CTA */}
+      {false && (
+        <Link
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block px-4 py-2 border rounded hover:bg-brand hover:text-black hover:opacity-90"
+        >
+          {t("button")}
+        </Link>
+      )}
+
       <ContactForm locale={locale} action={action} />
     </section>
   );

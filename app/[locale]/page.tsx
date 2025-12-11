@@ -7,12 +7,16 @@ export default async function Home({
   params,
   searchParams,
 }: {
-  params: { locale: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const t = await getTranslations({ locale: params.locale });
+  // Resolve the promises (Next 15)
+  const { locale } = await params;
+  const allSearchParams = await searchParams;
 
-  const contactParam = searchParams?.contact;
+  const t = await getTranslations({ locale });
+
+  const contactParam = allSearchParams.contact;
   const showContactSuccess =
     contactParam === "ok" ||
     (Array.isArray(contactParam) && contactParam.includes("ok"));
@@ -30,7 +34,7 @@ export default async function Home({
       <p className="whitespace-pre-line">{t("home.intro")}</p>
 
       <a
-        href={`/${params.locale}/contact`}
+        href={`/${locale}/contact`}
         className="inline-block mx-2 px-4 py-2 border rounded hover:bg-brand hover:text-black"
       >
         {t("home.cta")}

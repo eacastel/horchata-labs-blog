@@ -1,4 +1,3 @@
-
 // app/[locale]/blog/[slug]/page.tsx (Post)
 
 import type { Metadata } from "next";
@@ -8,23 +7,41 @@ import { documentToReactComponents } from "@contentful/rich-text-react-renderer"
 
 export const revalidate = 60;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug, params.locale);
+// If you want, you can keep a loose type just for yourself:
+type BlogPageParams = {
+  locale: string;
+  slug: string;
+};
+
+export async function generateMetadata(
+  { params }: { params: BlogPageParams } | any
+): Promise<Metadata> {
+  // If Next ever starts passing a Promise here, this still works:
+  const resolvedParams =
+    typeof (params as any)?.then === "function" ? await params : params;
+
+  const post = await getPostBySlug(
+    resolvedParams.slug,
+    resolvedParams.locale
+  );
   if (!post) return {};
-  return postMetadata(post, params.locale);
+  return postMetadata(post, resolvedParams.locale);
 }
 
-export default async function BlogPost({
-  params,
-}: {
-  params: { locale: string; slug: string };
-}) {
-  const post = await getPostBySlug(params.slug, params.locale);
-  if (!post) return <div className="text-neutral-600">Not found</div>;
+export default async function BlogPost(
+  { params }: { params: BlogPageParams } | any
+) {
+  const resolvedParams =
+    typeof (params as any)?.then === "function" ? await params : params;
+
+  const post = await getPostBySlug(
+    resolvedParams.slug,
+    resolvedParams.locale
+  );
+  if (!post) {
+    return <div className="text-neutral-600">Not found</div>;
+  }
+
   return (
     <article className="prose prose-neutral dark:prose-invert max-w-none">
       <h1>{post.title}</h1>

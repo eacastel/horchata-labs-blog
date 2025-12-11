@@ -1,5 +1,5 @@
 // lib/seo.ts
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 const SITE_NAME = "Horchata Labs";
 const SITE_DESC_EN =
@@ -8,7 +8,10 @@ const SITE_DESC_ES =
   "Horchata Labs es una agencia boutique creativo-tecnológica con sede en Valencia, especializada en posicionamiento digital, branding y SEO técnico. Creamos webs en Next.js para marcas que exigen calidad. Impulsamos tu posicionamiento con IA, analítica y automatización.";
 
 const BASE_URL =
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://horchatalabs.com").replace(/\/+$/, "");
+  (process.env.NEXT_PUBLIC_SITE_URL || "https://horchatalabs.com").replace(
+    /\/+$/,
+    ""
+  );
 
 const abs = (p: string) => (p.startsWith("http") ? p : `${BASE_URL}${p}`);
 
@@ -24,8 +27,26 @@ export function defaultMetadata(locale: string): Metadata {
     description,
     applicationName: SITE_NAME,
     keywords: isEs
-      ? ["agencia", "Valencia", "SEO", "analítica", "branding", "desarrollo web", "funnel", "marketing"]
-      : ["agency", "Valencia", "SEO", "analytics", "branding", "web development", "funnel", "marketing"],
+      ? [
+          "agencia",
+          "Valencia",
+          "SEO",
+          "analítica",
+          "branding",
+          "desarrollo web",
+          "funnel",
+          "marketing",
+        ]
+      : [
+          "agency",
+          "Valencia",
+          "SEO",
+          "analytics",
+          "branding",
+          "web development",
+          "funnel",
+          "marketing",
+        ],
     alternates: {
       languages: {
         en: `${BASE_URL}/en`,
@@ -59,21 +80,34 @@ export function defaultMetadata(locale: string): Metadata {
     icons: {
       icon: [
         { url: "/favicon.ico" },
-        { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-        { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+        {
+          url: "/icons/favicon-32x32.png",
+          sizes: "32x32",
+          type: "image/png",
+        },
+        {
+          url: "/icons/favicon-16x16.png",
+          sizes: "16x16",
+          type: "image/png",
+        },
       ],
       apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
     },
 
     manifest: "/site.webmanifest",
 
-    themeColor: [
-      { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-      { media: "(prefers-color-scheme: dark)", color: "#000000" },
-    ],
+    // ❌ themeColor removed from here
     robots: { index: true, follow: true },
   };
 }
+
+// New: viewport config, where themeColor belongs now
+export const defaultViewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
 
 export function postMetadata(
   post: { title: string; excerpt?: string; coverImage?: string; slug: string },
@@ -82,7 +116,9 @@ export function postMetadata(
   const url = `${BASE_URL}/${locale}/blog/${post.slug}`;
   const description =
     post.excerpt ||
-    (locale === "es" ? "Artículo del blog Horchata Labs" : "Horchata Labs blog post");
+    (locale === "es"
+      ? "Artículo del blog Horchata Labs"
+      : "Horchata Labs blog post");
 
   return {
     title: post.title,
@@ -102,7 +138,9 @@ export function postMetadata(
       card: "summary_large_image",
       title: post.title,
       description,
-      images: [post.coverImage ? abs(post.coverImage) : abs("/og/horchata-og.png")],
+      images: [
+        post.coverImage ? abs(post.coverImage) : abs("/og/horchata-og.png"),
+      ],
     },
   };
 }

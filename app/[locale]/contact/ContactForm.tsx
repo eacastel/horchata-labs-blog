@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useRef, useEffect, useActionState } from "react"; // ⬅️ useActionState from react
+import { useFormStatus } from "react-dom";                 // ⬅️ useFormStatus stays from react-dom
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { FormState } from "./actions";
@@ -17,10 +17,13 @@ export default function ContactForm({
   const router = useRouter();
 
   const initialState: FormState = null;
-  const [state, formAction] = useFormState<FormState, FormData>(
+
+  // ⬇️ useActionState instead of useFormState
+  const [state, formAction] = useActionState<FormState, FormData>(
     action,
     initialState
   );
+
   const { pending } = useFormStatus();
 
   // Time-trap: freeze first render time
@@ -53,7 +56,7 @@ export default function ContactForm({
   return (
     <form
       action={formAction}
-      method="post"
+      // ⬇️ remove method to avoid POST/post hydration mismatch
       noValidate
       className="space-y-3 max-w-md"
     >
