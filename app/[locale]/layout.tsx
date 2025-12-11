@@ -11,6 +11,8 @@ import Script from "next/script";
 import { getTranslations } from "next-intl/server";
 import { BotIdClient } from "botid/client";
 
+
+
 const locales = (process.env.NEXT_PUBLIC_AVAILABLE_LOCALES || "en,es").split(
   ","
 );
@@ -48,11 +50,15 @@ export default async function LocaleLayout({
 
   if (!locales.includes(locale)) notFound();
   const messages = (await import(`../../messages/${locale}.json`)).default;
+  const tNav = await getTranslations({ locale, namespace: "nav" });
   const t = await getTranslations({ locale, namespace: "footer" });
   const year = new Date().getFullYear();
   const brand = "Horchata Labs";
 
   const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+
+
+
 
   return (
     <html lang={locale}>
@@ -139,7 +145,7 @@ export default async function LocaleLayout({
                   href={`/${locale}/contact`}
                   className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
                 >
-                  Contact
+                  {tNav("contact")}
                 </Link>
                 <LanguageSwitch locale={locale} />
               </div>
