@@ -10,8 +10,8 @@ import Link from "next/link";
 import Script from "next/script";
 import { getTranslations } from "next-intl/server";
 import { BotIdClient } from "botid/client";
-
-
+import { getBrand } from "@lib/getBrand";
+import { getBrandConfig } from "@lib/brands";
 
 const locales = (process.env.NEXT_PUBLIC_AVAILABLE_LOCALES || "en,es").split(
   ","
@@ -28,9 +28,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const brandKey = await getBrand();
+  const brand = getBrandConfig(brandKey);
+
+  // If you want, pass brand into your metadata later.
+  // For now keep your existing metadata stable:
   return defaultMetadata(locale);
 }
-
 
 // BOTID routes (must match your POST targets)
 const protectedRoutes = [
@@ -53,12 +57,11 @@ export default async function LocaleLayout({
   const tNav = await getTranslations({ locale, namespace: "nav" });
   const t = await getTranslations({ locale, namespace: "footer" });
   const year = new Date().getFullYear();
-  const brand = "Horchata Labs";
+  const brandKey = await getBrand();
+  const brandCfg = getBrandConfig(brandKey);
+  const brand = brandCfg.name;
 
   const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
-
-
-
 
   return (
     <html lang={locale}>
@@ -117,36 +120,66 @@ export default async function LocaleLayout({
 
         <NextIntlClientProvider locale={locale} messages={messages}>
           <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
-            <nav className="max-w-content mx-auto flex items-center justify-between p-4">
+            <nav
+              className={`max-w-content mx-auto flex items-center justify-between px-4 ${brandCfg.navPaddingYClassName} ${brandCfg.navHeightClassName}`}
+            >
               <Link
                 href={`/${locale}`}
-                className="flex items-center gap-2 font-semibold text-neutral-900 dark:text-neutral-100"
-                aria-label="Horchata Labs Home"
+                className="flex items-center"
+                aria-label={`${brand} Home`}
               >
-                <picture className="mx-2">
-                  <source
-                    srcSet="/images/horchata-mark-dark.png"
-                    media="(prefers-color-scheme: dark)"
-                  />
-                  <img
-                    src="/images/horchata-mark-light.png"
-                    alt="Horchata Labs"
-                    width={100}
-                    height={100}
-                    className="rounded-md"
-                    loading="eager"
-                    decoding="async"
-                  />
-                </picture>
+                {/* Logo wrapper defines the vertical footprint */}
+                <div
+                  className={`${brandCfg.navHeightClassName} flex items-center`}
+                >
+                  <picture>
+                    <source
+                      srcSet={brandCfg.logoDark}
+                      media="(prefers-color-scheme: dark)"
+                    />
+                    <img
+                      src={brandCfg.logoLight}
+                      alt={brand}
+                      className={`${brandCfg.logoClassName} w-auto object-contain`}
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </picture>
+                </div>
               </Link>
 
               <div className="flex gap-4 text-sm items-center">
+                <Link
+                  href={`/${locale}/services`}
+                  className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
+                >
+                  Services
+                </Link>
+                <Link
+                  href={`/${locale}/diagnostic`}
+                  className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
+                >
+                  Diagnostic
+                </Link>
+                <Link
+                  href={`/${locale}/work`}
+                  className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
+                >
+                  Work
+                </Link>
+                <Link
+                  href={`/${locale}/about`}
+                  className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
+                >
+                  About
+                </Link>
                 <Link
                   href={`/${locale}/contact`}
                   className="text-neutral-700 dark:text-neutral-200 hover:text-brand"
                 >
                   {tNav("contact")}
                 </Link>
+
                 <LanguageSwitch locale={locale} />
               </div>
             </nav>
